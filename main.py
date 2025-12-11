@@ -53,7 +53,7 @@ def job():
                 f"{offer['link']}"
             )
             
-            print(f"Enviando oferta: R$ {offer['price']} ({offer['airline']})")
+            print(f"Enviando a oferta: R$ {offer['price']} ({offer['airline']})")
             sender.send_message(msg)
             save_offer(offer)
             enviados_count += 1
