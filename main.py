@@ -1,61 +1,78 @@
+# -*- coding: utf-8 -*-
 import schedule
 import time
+import datetime
 from flight_search import FlightSearch
 from database import init_db, offer_exists, save_offer
 from whatsapp_sender import WhatsAppSender
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def job():
-    print(f"Iniciando busca de passagens: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"\n--- Iniciando ciclo de busca: {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
     
-    # Configurações de busca (podem vir de config ou DB)
     origin = "GRU"
     destination = "MIA"
-    import datetime
-    # Define data para amanhã (ou outra data futura desejada)
+    
+    # Busca para amanhã (data dinâmica)
     tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     date = tomorrow
     
     searcher = FlightSearch()
     sender = WhatsAppSender()
     
-    offers = searcher.buscar_voo(origin, destination, date)
+    offers = searcher.search_flights(origin, destination, date)
     
     if not offers:
         print("Nenhuma oferta encontrada.")
         return
 
+    enviados_count = 0
     for offer in offers:
-        # Verifica se já enviou esta oferta específica
         if not offer_exists(offer['id']):
-            # Monta mensagem
+            # 2. Copywriting e Correção de Acentuação
+            # Formatando a data de YYYY-MM-DD para DD/MM/YYYY
+            data_obj = datetime.datetime.strptime(offer['departure_date'], '%Y-%m-%d')
+            data_formatada = data_obj.strftime('%d/%m/%Y')
+            
+            # Construção da mensagem com Emojis e Quebras de linha
+            # Usando f-string normal, Python 3 trata utf-8 nativamente
+            # Construção da mensagem com Unicode Escapes e Layout Novo
+            # Construção da mensagem com Unicode Escapes e Layout Novo
             msg = (
-                f"✈️ PROMOÇÃO ENCONTRADA! ✈️\n"
-                f"De: {offer['origin']} Para: {offer['destination']}\n"
-                f"Data: {offer['departure_date']}\n"
-                f"Preço: R$ {offer['price']}\n"
-                f"Link: {offer['link']}"
+                f"🚨 *ALERTA DE PRE\u00C7O BAIXO!* 🚨\n\n"
+                f"✈️ *De:* {offer['origin']} - {offer['origin_city']} \n"
+                f"🛬 *Para:* {offer['destination']} - {offer['destination_city']}\n"
+                f"📅 *Data:* {offer['departure_date']}\n"
+                f"🏨 *Cia:* {offer.get('airline', 'N/A')}\n\n"
+                f"❌ ~De: R$ {offer['original_price']}~\n"
+                f"✅ *Por: R$ {offer['price']}*\n\n"
+                f"👇 *GARANTA AGORA:*\n"
+                f"{offer['link']}"
             )
             
-            # Envia notificação
+            print(f"Enviando oferta: R$ {offer['price']} ({offer['airline']})")
             sender.send_message(msg)
-            
-            # Salva no banco para não enviar novamente
             save_offer(offer)
-        else:
-            print(f"Oferta {offer['id']} já enviada anteriormente.")
+            enviados_count += 1
+            
+            # Pausa para não atropelar o navegador
+            time.sleep(8)
+        
+    if enviados_count > 0:
+        print(f"Ciclo concluído. {enviados_count} ofertas enviadas.")
 
 def main():
-    print("Inicializando Bot de Passagens...")
+    print("🤖 Bot Iniciado! (Pressione Ctrl+C para parar)")
     init_db()
     
-    # Executa uma vez imediatamente ao iniciar
+    # Primeira execução
     job()
     
-    # Agenda para rodar a cada 30 minutos
+    # Agendamento
     schedule.every(30).minutes.do(job)
-    
-    print("Agendamento configurado. Aguardando execuções...")
     
     while True:
         schedule.run_pending()

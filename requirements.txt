@@ -3,3 +3,5 @@ requests
 schedule
 pywhatkit
 python-dotenv
+pyperclip
+pyautogui
