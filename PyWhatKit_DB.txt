@@ -8,3 +8,33 @@ Time: 14:49
 Group ID: BCMSWUrlitUKvM7spL5yUG
 Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2024-12-25Preço: R$ 1335Link: http://mock-link.com
 --------------------
+Date: 11/12/2025
+Time: 0:2
+Group ID: BCMSWUrlitUKvM7spL5yUG
+Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2025-12-12Preço: R$ 1613Link: https://www.google.com/travel/flights?hl=pt&gl=us&curr=BRL&tfs=CBwQAhoeEgoyMDI1LTEyLTEyagcIARIDR1JVcgcIARIDTUlBQgEBSAFwAZgBAg&tfu=EgIIAQ
+--------------------
+Date: 11/12/2025
+Time: 0:3
+Group ID: BCMSWUrlitUKvM7spL5yUG
+Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2025-12-12Preço: R$ 2690Link: https://www.google.com/travel/flights?hl=pt&gl=us&curr=BRL&tfs=CBwQAhoeEgoyMDI1LTEyLTEyagcIARIDR1JVcgcIARIDTUlBQgEBSAFwAZgBAg&tfu=EgIIAQ
+--------------------
+Date: 11/12/2025
+Time: 0:9
+Group ID: BCMSWUrlitUKvM7spL5yUG
+Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2025-12-12Preço: R$ 2860Link: https://www.google.com/travel/flights?hl=pt&gl=br&curr=BRL&tfs=CBwQAhoeEgoyMDI1LTEyLTEyagcIARIDR1JVcgcIARIDTUlBQgEBSAFwAZgBAg&tfu=EgIIAQ
+--------------------
+Date: 11/12/2025
+Time: 0:10
+Group ID: BCMSWUrlitUKvM7spL5yUG
+Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2025-12-12Preço: R$ 3438Link: https://www.google.com/travel/flights?hl=pt&gl=br&curr=BRL&tfs=CBwQAhoeEgoyMDI1LTEyLTEyagcIARIDR1JVcgcIARIDTUlBQgEBSAFwAZgBAg&tfu=EgIIAQ
+--------------------
+Date: 11/12/2025
+Time: 0:15
+Group ID: BCMSWUrlitUKvM7spL5yUG
+Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2025-12-12Preço: R$ 4023Link: https://www.google.com/travel/flights?q=Flights+from+GRU+to+MIA+on+2025-12-12+one+way&curr=BRL
+--------------------
+Date: 11/12/2025
+Time: 0:35
+Group ID: BCMSWUrlitUKvM7spL5yUG
+Message: ✈️ PROMOÇÃO ENCONTRADA! ✈️De: GRU Para: MIAData: 2025-12-12Preço: R$ 2330Link: https://www.google.com/travel/flights?q=Flights%20to%20MIA%20from%20GRU%20on%202025-12-12%20oneway&curr=BRL
+--------------------

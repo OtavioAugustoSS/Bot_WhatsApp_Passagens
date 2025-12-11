@@ -11,12 +11,15 @@ def job():
     # Configurações de busca (podem vir de config ou DB)
     origin = "GRU"
     destination = "MIA"
-    date = "2024-12-25" # Exemplo fixo, idealmente dinâmico
+    import datetime
+    # Define data para amanhã (ou outra data futura desejada)
+    tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    date = tomorrow
     
     searcher = FlightSearch()
     sender = WhatsAppSender()
     
-    offers = searcher.search_flights(origin, destination, date)
+    offers = searcher.buscar_voo(origin, destination, date)
     
     if not offers:
         print("Nenhuma oferta encontrada.")
