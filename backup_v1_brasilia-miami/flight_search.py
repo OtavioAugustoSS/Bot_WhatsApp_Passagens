@@ -62,15 +62,7 @@ class FlightSearch:
                 'MAD': 'Madrid',
                 'PAR': 'Paris',
                 'CDG': 'Paris',
-                'DXB': 'Dubai',
-                'GYN': 'Goiânia',
-                'CGB': 'Cuiabá',
-                'CGR': 'Campo Grande',
-                'FOR': 'Fortaleza',
-                'SSA': 'Salvador',
-                'FLN': 'Florianópolis',
-                'MCO': 'Orlando',
-                'EZE': 'Buenos Aires'
+                'DXB': 'Dubai'
             }
             # Fallback para o próprio código se não tiver no mapa
             origin_city = IATA_CITIES.get(origin, origin)
@@ -90,16 +82,7 @@ class FlightSearch:
             # Se tivermos preços, calculamos a média. Se não, usamos 0.
             # Convertendo para int para evitar centavos no display
             avg_price = int(sum(all_prices) / len(all_prices)) if all_prices else 0
-            
-            # Tenta pegar insights de preço da API
-            api_high_price = None
-            if 'price_insights' in data and 'typical_price_range' in data['price_insights']:
-                # Example: [1000, 2000] -> We take 2000 as the high/base anchor
-                range_vals = data['price_insights']['typical_price_range']
-                if isinstance(range_vals, list) and len(range_vals) > 1:
-                     api_high_price = range_vals[1]
-
-            # Preço âncora padrão é a média, mas se tiver insight, usamos no main
+            # Preço âncora agora é a média
             max_price = avg_price
 
             for flight in flights_found:
@@ -132,8 +115,7 @@ class FlightSearch:
                         'destination_city': destination_city,
                         'departure_date': date,
                         'price': price,
-                        'original_price': max_price, # Média calculada
-                        'api_high_price': api_high_price, # Insight da API (pode ser None)
+                        'original_price': max_price, # Preço âncora
                         'airline': airline,
                         'link': link_seguro
                     }

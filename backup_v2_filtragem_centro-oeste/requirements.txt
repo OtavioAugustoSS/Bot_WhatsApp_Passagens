@@ -1,0 +1,7 @@
+mysql-connector-python
+requests
+schedule
+pywhatkit
+python-dotenv
+pyperclip
+pyautogui
