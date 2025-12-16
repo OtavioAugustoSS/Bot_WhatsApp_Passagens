@@ -1,1 +1,7 @@
 .env
+
+chrome_profile/
+
+PyWhatKit_DB.txt
+
+__pycache__/
