@@ -11,41 +11,37 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuração de Rotas
-ORIGINS = ['BSB', 'GYN', 'CGB', 'CGR']
-DESTINATIONS = ['GRU', 'GIG', 'FOR', 'SSA', 'FLN', 'MIA', 'MCO', 'LIS', 'MAD', 'EZE']
+ORIGINS = ['BSB']
+DESTINATIONS = ['SCL', 'FLN', 'NVT']
 
-# Limites de Preço (Price Cap)
+# Limites de Preço (Price Cap Absurdamente Agressivos)
 PRICE_TARGETS = {
-    'MIA': 2800, 
-    'MCO': 3000, 
-    'LIS': 3500, 
-    'MAD': 3500, 
-    'EZE': 1500,
-    'GRU': 400,
-    'GIG': 400,
-    'SAO': 400,
-    'RIO': 400,
-    'FOR': 900,
-    'SSA': 700,
-    'FLN': 500
+    'SCL': 900, 
+    'FLN': 400,
+    'NVT': 400
 }
 
-def job():
-    print(f"\n--- Iniciando Ciclo de Busca Global: {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
+def job(sender):
+    print(f"\n--- Iniciando Ciclo de Busca (Feriadões): {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
     
-    # Horizontes de Busca (Datas Dinâmicas)
-    search_horizons = {
-        'Curto Prazo 🏃': 45,
-        'Médio Prazo 📅': 90,
-        'Longo Prazo ✈️': 150
-    }
+    # Janela de Datas Estrita e Finais de semana prolongados (Sab-Ter)
+    start_window = datetime.date(2026, 6, 20)
+    end_window = datetime.date(2026, 7, 30)
+    
+    date_pairs = []
+    curr_date = start_window
+    while curr_date <= end_window:
+        if curr_date.weekday() == 5: # Sábado
+            return_date = curr_date + datetime.timedelta(days=3) # Terça da semana seguinte
+            if return_date <= end_window:
+                date_pairs.append((curr_date, return_date))
+        curr_date += datetime.timedelta(days=1)
     
     searcher = FlightSearch()
-    sender = WhatsAppBot()
     
     total_offers_sent = 0
 
-    # Lógica: Origem -> Destino -> Horizonte
+    # Lógica: Origem -> Destino -> Datas (Sab -> Ter)
     for origin in ORIGINS:
         for destination in DESTINATIONS:
             if origin == destination:
@@ -53,84 +49,89 @@ def job():
 
             target_price = PRICE_TARGETS.get(destination, 99999)
 
-            for label, days in search_horizons.items():
-                date = (datetime.date.today() + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
+            for outbound_date, return_date in date_pairs:
+                outbound_str = outbound_date.strftime('%Y-%m-%d')
+                return_str = return_date.strftime('%Y-%m-%d')
                 
-                print(f">>> Buscando: {origin} -> {destination} [{label}] Data: {date}")
+                print(f">>> Buscando: {origin} -> {destination} | Ida: {outbound_str} | Volta: {return_str}")
                 
                 time.sleep(1) 
                 
-                offers = searcher.search_flights(origin, destination, date)
+                offers = searcher.search_flights(origin, destination, outbound_str, return_str)
                 
                 if not offers:
                     continue
 
-                for offer in offers:
-                    price = offer['price']
-                    
-                    # 1. Lógica de Preço Base (Âncora de Comparação)
-                    # Tenta usar o insight da API primeiro, senão usa heurística
-                    base_price = offer.get('api_high_price')
-                    
-                    if not base_price:
-                        # Markup Heurístico baseado no horizonte
-                        markup = 1.10 
-                        if days == 90:
-                            markup = 1.20 
-                        elif days == 150:
-                            markup = 1.40 
+                # Processar APENAS a oferta mais barata (como a lista já vem ordenada, é a primeira)
+                best_offer = offers[0]
+                price = best_offer['price']
+                
+                # 1. Lógica de Preço Base (Âncora de Comparação)
+                base_price = best_offer.get('api_high_price')
+                
+                if not base_price:
+                    # Se a API não der insight pra ida e volta, assumimos um markup padrão para estimativa de "preço normal"
+                    base_price = int(price * 1.50)
+                
+                # 2. Cálculo de Economia
+                economy = base_price - price
+                percentage = int((economy / base_price) * 100) if base_price > 0 else 0
+                
+                # 3. Filtro de "Promoção Incrível" (>= 35% de desconto OU abaixo da agressiva margem alvo)
+                is_incredible_promo = (percentage >= 35) or (price <= target_price)
+                
+                if is_incredible_promo:
+                    if not offer_exists(best_offer['id']):
+                        data_ida_obj = datetime.datetime.strptime(best_offer['departure_date'], '%Y-%m-%d')
+                        data_ida_fmt = data_ida_obj.strftime('%d/%m/%Y')
                         
-                        base_price = int(price * markup)
-                    
-                    # 2. Cálculo de Economia
-                    economy = base_price - price
-                    percentage = int((economy / base_price) * 100) if base_price > 0 else 0
-                    
-                    # Regra: Apenas alertar se economia > 10% E preço <= alvo
-                    if price <= target_price and price < (base_price * 0.9):
-                        if not offer_exists(offer['id']):
-                            data_obj = datetime.datetime.strptime(offer['departure_date'], '%Y-%m-%d')
-                            formatted_date = data_obj.strftime('%d/%m/%Y')
-                            
-                            # Template da Mensagem
-                            msg = (
-                                f"📉 *OPORTUNIDADE ENCONTRADA!*\n"
-                                f"✈️ Trecho: {offer['origin_city']} ➡️ {offer['destination_city']}\n"
-                                f"⏳ Antecedência: {label} ({days} dias)\n"
-                                f"📅 Data: {formatted_date}\n"
-                                f"🏨 Cia: {offer.get('airline', 'N/A')}\n\n"
-                                f"❌ Média p/ essa data: ~R$ {base_price}~\n"
-                                f"✅ *PREÇO ATUAL: R$ {price}*\n"
-                                f"🔥 Economia: R$ {economy} ({percentage}%)\n\n"
-                                f"👇 GARANTA AGORA:\n"
-                                f"{offer['link']}"
-                            )
-                            
-                            print(f"!!! MATCH !!! {origin}->{destination} | R$ {price} (Econ: {percentage}%)")
-                            sender.send_message(msg)
-                            save_offer(offer)
-                            total_offers_sent += 1
-                            
-                            time.sleep(10)
+                        data_volta_obj = datetime.datetime.strptime(best_offer['return_date'], '%Y-%m-%d')
+                        data_volta_fmt = data_volta_obj.strftime('%d/%m/%Y')
+                        
+                        # Template da Mensagem
+                        msg = (
+                            f"🚨 *PROMOÇÃO ABSURDA ENCONTRADA!* 🚨\n"
+                            f"✈️ Trecho: {best_offer['origin_city']} ➡️ {best_offer['destination_city']} (Ida e Volta)\n"
+                            f"📅 Ida: {data_ida_fmt} (Sábado)\n"
+                            f"📅 Volta: {data_volta_fmt} (Terça)\n"
+                            f"🏨 Cia: {best_offer.get('airline', 'N/A')}\n\n"
+                            f"❌ Preço Normal: ~R$ {base_price}~\n"
+                            f"✅ *PREÇO ATUAL: R$ {price}*\n"
+                            f"🔥 Economia: R$ {economy} (-{percentage}%)\n\n"
+                            f"👇 GARANTA AGORA (Google Flights):\n"
+                            f"{best_offer['link']}"
+                        )
+                        
+                        print(f"!!! MATCH !!! {origin}->{destination} | R$ {price} (Econ: {percentage}%)")
+                        sender.send_message(msg)
+                        save_offer(best_offer)
+                        total_offers_sent += 1
+                        
+                        time.sleep(10)
         
     print(f"\nCiclo finalizado. Total de alertas enviados: {total_offers_sent}")
-    
-    # Libera recursos
-    sender.close()
+    print("Aguardando próximo ciclo. (WhatsApp mantido aberto)")
 
 def main():
-    print("🤖 Bot Iniciado! (Pressione Ctrl+C para parar)")
+    print("🤖 Bot Iniciado! (Pressione Ctrl+C para parar e fechar tudo)")
     init_db()
     
+    # Criamos a instância de envio (Navegador) apeas UMA vez na inicialização
+    sender = WhatsAppBot()
+    
     # Primeira execução
-    job()
+    job(sender)
     
-    # Agendamento
-    schedule.every(30).minutes.do(job)
+    # Agendamento - executará a mesma função enviando o sender
+    schedule.every(30).minutes.do(job, sender)
     
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    try:
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nPrograma interrompido pelo usuário. Fechando WhatsApp...")
+        sender.close()
 
 if __name__ == "__main__":
     main()
